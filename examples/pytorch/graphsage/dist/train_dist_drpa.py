@@ -33,7 +33,7 @@ from load_graph import load_reddit, load_ogb
 from dgl.distgnn.drpa_sym import drpa
 
 try:
-    import torch_ccl
+    import oneccl_bindings_for_pytorch
 except ImportError as e:
     print(e)
 
@@ -265,7 +265,7 @@ if __name__ == '__main__':
                         help="Aggregator type: mean/gcn/pool/lstm")
     parser.add_argument('--world-size', default=-1, type=int,
                          help='number of nodes for distributed training')
-    parser.add_argument('--rank', default=-1, type=int,
+    parser.add_argument('--rank', default=0, type=int,
                          help='node rank for distributed training')
     parser.add_argument('--dist-url', default='env://', type=str,
                          help='url used to set up distributed training')
@@ -279,7 +279,8 @@ if __name__ == '__main__':
         args.world_size = int(os.environ.get("PMI_SIZE", -1))
         if args.world_size == -1: args.world_size = int(os.environ["WORLD_SIZE"])
 
-    args.distributed = args.world_size > 1
+    # args.distributed = args.world_size > 1
+    args.distributed = True
     if args.distributed:
         args.rank = int(os.environ.get("PMI_RANK", -1))
         if args.rank == -1: args.rank = int(os.environ["RANK"])        
@@ -312,6 +313,7 @@ if __name__ == '__main__':
         print("Dataset/partition location: ", part_config)
     with open(part_config) as conf_f:
         part_metadata = json.load(conf_f)
+        print(part_metadata)
         
         
     part_files = part_metadata['part-{}'.format(args.rank)]
